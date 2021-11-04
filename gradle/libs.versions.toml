@@ -1,0 +1,15 @@
+[versions]
+koTest = "4.6.3"
+ktlint = "0.43.0"
+coroutines = "1.5.1"
+
+[libraries]
+kotest-junit-runner = { module = "io.kotest:kotest-runner-junit5", version.ref = "koTest" }
+kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "koTest" }
+kotest-property = { module = "io.kotest:kotest-property", version.ref = "koTest" }
+ktlint = { module = "com.pinterest:ktlint", version.ref = "ktlint" }
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+
+[bundles]
+koTest = [ "kotest-junit-runner", "kotest-assertions-core", "kotest-property" ]
+coroutines = [ "coroutines-core" ]
