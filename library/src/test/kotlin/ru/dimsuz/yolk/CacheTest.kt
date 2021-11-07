@@ -16,7 +16,7 @@ class CacheTest : ShouldSpec({
       fetch = { fetched.set(true); 42 }
     )
 
-    sut.load()
+    sut.load("a")
 
     fetched.shouldBeTrue()
   }
@@ -30,10 +30,10 @@ class CacheTest : ShouldSpec({
       fetch = { fetchCount.incrementAndGet(); 42 },
       enableLogging = true
     )
-    sut.load()
+    sut.load("a")
 
     ticker.advanceBy(Duration.ofMinutes(2))
-    sut.load()
+    sut.load("a")
 
     fetchCount.get() shouldBe 1
   }
@@ -47,10 +47,10 @@ class CacheTest : ShouldSpec({
       fetch = { fetchCount.incrementAndGet(); 42 },
       enableLogging = true
     )
-    sut.load()
+    sut.load("a")
 
     ticker.advanceBy(Duration.ofMinutes(3).plusNanos(10))
-    sut.load()
+    sut.load("a")
 
     fetchCount.get() shouldBe 2
   }

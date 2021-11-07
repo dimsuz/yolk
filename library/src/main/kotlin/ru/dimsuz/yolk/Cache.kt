@@ -1,25 +1,21 @@
 package ru.dimsuz.yolk
 
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
 import java.time.Duration
-import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 class Cache<K : Any, V>(
-  private val key: suspend () -> K,
   private val expirePolicy: ExpirePolicy<K>,
   private val fetch: suspend (key: K) -> V,
-  private val write: suspend (key: K, value: V) -> Unit,
   private val keyStore: KeyStore<K>,
+  private val valueStore: ValueStore<K, V>,
   private val ticker: Ticker,
   private val log: (() -> String) -> Unit = {}
 ) {
-  suspend fun refresh() { TODO() }
 
-  suspend fun load() {
-    val key = key()
+  suspend fun refresh(key: K) { TODO() }
+
+  suspend fun load(key: K) {
     log { "loading key $key" }
     val timestamps = keyStore.read(key)
     if (expirePolicy.hasExpired(key, timestamps)) {
@@ -41,15 +37,16 @@ class Cache<K : Any, V>(
     }
   }
 
-  suspend fun get(): V? { TODO() }
+  suspend fun get(key: K): V? {
+    return valueStore.read(key)
+  }
 
-  suspend fun hasExpired(): Boolean {
-    val key = key()
+  suspend fun hasExpired(key: K): Boolean {
     return expirePolicy.hasExpired(key, keyStore.read(key))
   }
 
-  suspend fun invalidate() {
-    keyStore.remove(key())
+  suspend fun invalidate(key: K) {
+    keyStore.remove(key)
   }
 }
 
@@ -63,26 +60,6 @@ interface ExpirePolicy<K : Any> {
           return timestamps?.updatedAt == null || Duration.between(timestamps.updatedAt, ticker.now) > duration
         }
       }
-    }
-  }
-}
-
-data class KeyTimestamps(
-  val accessAt: Instant?,
-  val updatedAt: Instant?,
-)
-
-fun <T> Flow<T>.filterCached(cache: Cache<*, T>): Flow<T> {
-  return this.filter { !cache.hasExpired() }
-}
-
-interface Ticker {
-  val now: Instant
-
-  companion object {
-    fun system() = object : Ticker {
-      override val now: Instant
-        get() = Instant.now()
     }
   }
 }
