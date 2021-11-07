@@ -3,7 +3,7 @@ package ru.dimsuz.yolk
 import java.util.concurrent.ConcurrentHashMap
 
 class MemoryKeyStore<K : Any>(
-  private val ticker: Ticker,
+  private val ticker: Ticker = Ticker.system(),
 ) : KeyStore<K> {
   private val store = ConcurrentHashMap<K, KeyTimestamps>()
 

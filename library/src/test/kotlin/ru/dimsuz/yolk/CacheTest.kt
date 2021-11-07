@@ -56,6 +56,30 @@ class CacheTest : ShouldSpec({
     fetchCount.get() shouldBe 2
   }
 
+  should("return fetched value on cache miss") {
+    val sut = createStringIntCache(
+      fetch = { if (it == "a") 42 else if (it == "b") 24 else 88 },
+    )
+
+    val value1 = sut.load("a")
+    val value2 = sut.load("b")
+
+    value1 shouldBe 42
+    value2 shouldBe 24
+  }
+
+  should("return stored value on cache hit") {
+    val fetchCount = AtomicInteger()
+    val sut = createStringIntCache(
+      fetch = { if (fetchCount.getAndIncrement() == 0) 42 else 24 },
+    )
+
+    sut.load("a")
+    val value = sut.load("a")
+
+    value shouldBe 42
+  }
+
   should("write value to value store on cache miss") {
     val store = MemoryValueStore<String, Int>()
     val sut = createStringIntCache(
@@ -63,9 +87,9 @@ class CacheTest : ShouldSpec({
       valueStore = store
     )
 
-    sut.load("a")
+    val value = sut.load("a")
 
-    sut.get("a") shouldBe 42
+    value shouldBe 42
   }
 
   should("write value ONCE to value store on cache miss") {
@@ -89,8 +113,8 @@ class CacheTest : ShouldSpec({
     sut.load("a")
     check(!sut.hasExpired("a"))
 
-    sut.refresh("a")
+    val value = sut.load("a", forceRefresh = true)
 
-    sut.get("a") shouldBe 24
+    value shouldBe 24
   }
 })

@@ -11,9 +11,7 @@ class LazyKeyCache<K : Any, V>(
 ) {
   private val _cache = Cache(expirePolicy, fetch, keyStore, valueStore, ticker, log)
 
-  suspend fun refresh() = _cache.refresh(key())
-  suspend fun load() = _cache.load(key())
-  suspend fun get(): V? = _cache.get(key())
+  suspend fun load(forceRefresh: Boolean) = _cache.load(key(), forceRefresh)
   suspend fun hasExpired() = _cache.hasExpired(key())
   suspend fun invalidate() = _cache.invalidate(key())
 }
