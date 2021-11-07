@@ -3,6 +3,7 @@ package ru.dimsuz.yolk
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.atomic.shouldBeTrue
 import io.kotest.matchers.shouldBe
+import ru.dimsuz.yolk.fake.FakeValueStore
 import ru.dimsuz.yolk.fake.createStringIntCache
 import ru.dimsuz.yolk.fake.fake
 import java.time.Duration
@@ -53,5 +54,43 @@ class CacheTest : ShouldSpec({
     sut.load("a")
 
     fetchCount.get() shouldBe 2
+  }
+
+  should("write value to value store on cache miss") {
+    val store = MemoryValueStore<String, Int>()
+    val sut = createStringIntCache(
+      fetch = { 42 },
+      valueStore = store
+    )
+
+    sut.load("a")
+
+    sut.get("a") shouldBe 42
+  }
+
+  should("write value ONCE to value store on cache miss") {
+    val store = FakeValueStore<String, Int>()
+    val sut = createStringIntCache(
+      fetch = { 42 },
+      valueStore = store
+    )
+
+    sut.load("a")
+    sut.load("a")
+
+    store.stats.writes shouldBe 1
+  }
+
+  should("refresh with fetch even if key is not expired") {
+    val fetchCount = AtomicInteger()
+    val sut = createStringIntCache(
+      fetch = { if (fetchCount.getAndIncrement() == 0) 42 else 24 },
+    )
+    sut.load("a")
+    check(!sut.hasExpired("a"))
+
+    sut.refresh("a")
+
+    sut.get("a") shouldBe 24
   }
 })

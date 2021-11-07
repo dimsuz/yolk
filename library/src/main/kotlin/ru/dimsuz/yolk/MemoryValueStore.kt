@@ -13,10 +13,6 @@ class MemoryValueStore<K : Any, V> : ValueStore<K, V> {
     store[key] = value
   }
 
-  override suspend fun update(key: K, transform: (V?) -> V?) {
-    store.compute(key) { _, value -> transform(value) }
-  }
-
   override suspend fun remove(key: K) {
     store.remove(key)
   }

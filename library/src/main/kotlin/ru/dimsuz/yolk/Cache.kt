@@ -13,8 +13,6 @@ class Cache<K : Any, V>(
   private val log: (() -> String) -> Unit = {}
 ) {
 
-  suspend fun refresh(key: K) { TODO() }
-
   suspend fun load(key: K) {
     log { "loading key $key" }
     val timestamps = keyStore.read(key)
@@ -24,7 +22,8 @@ class Cache<K : Any, V>(
         val now = LocalDateTime.ofInstant(ticker.now, ZoneOffset.UTC)
         "  key has expired. Fetching. (updatedAt: $updatedAt, now: $now)"
       }
-      fetch(key)
+      val value = fetch(key)
+      valueStore.write(key, value)
       keyStore.update(key) { ts ->
         ts?.copy(updatedAt = ticker.now) ?: KeyTimestamps(updatedAt = ticker.now, accessAt = null)
       }
@@ -43,6 +42,11 @@ class Cache<K : Any, V>(
 
   suspend fun hasExpired(key: K): Boolean {
     return expirePolicy.hasExpired(key, keyStore.read(key))
+  }
+
+  suspend fun refresh(key: K) {
+    invalidate(key)
+    load(key)
   }
 
   suspend fun invalidate(key: K) {
