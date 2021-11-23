@@ -1,7 +1,7 @@
 package ru.dimsuz.yolk
 
 class LazyKeyCache<K : Any, V>(
-  private val key: suspend () -> K,
+  private val keyFactory: suspend () -> K,
   expirePolicy: ExpirePolicy<K>,
   fetch: suspend (key: K) -> V,
   keyStore: KeyStore<K>,
@@ -11,7 +11,7 @@ class LazyKeyCache<K : Any, V>(
 ) {
   private val _cache = Cache(expirePolicy, fetch, keyStore, valueStore, ticker, log)
 
-  suspend fun load(forceRefresh: Boolean) = _cache.load(key(), forceRefresh)
-  suspend fun hasExpired() = _cache.hasExpired(key())
-  suspend fun invalidate() = _cache.invalidate(key())
+  suspend fun load(forceRefresh: Boolean) = _cache.load(keyFactory(), forceRefresh)
+  suspend fun hasExpired() = _cache.hasExpired(keyFactory())
+  suspend fun invalidate() = _cache.invalidate(keyFactory())
 }
