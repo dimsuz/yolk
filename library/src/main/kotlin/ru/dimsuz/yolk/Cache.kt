@@ -60,6 +60,49 @@ class Cache<K : Any, V>(
   suspend fun invalidate(key: K) {
     keyStore.remove(key)
   }
+
+  fun <K2 : Any> withKeyTransform(transform: (K2) -> K): Cache<K2, V> {
+    return Cache(
+      expirePolicy = object : ExpirePolicy<K2> {
+        override fun hasExpired(key: K2, timestamps: KeyTimestamps?): Boolean {
+          return expirePolicy.hasExpired(transform(key), timestamps)
+        }
+      },
+      fetch = { key: K2 -> fetch(transform(key)) },
+      keyStore = object : KeyStore<K2> {
+        override suspend fun read(key: K2): KeyTimestamps? {
+          return keyStore.read(transform(key))
+        }
+
+        override suspend fun write(key: K2, timestamps: KeyTimestamps) {
+          keyStore.write(transform(key), timestamps)
+        }
+
+        override suspend fun update(key: K2, transform: (KeyTimestamps?) -> KeyTimestamps?) {
+          keyStore.update(transform(key), transform)
+        }
+
+        override suspend fun remove(key: K2) {
+          keyStore.remove(transform(key))
+        }
+      },
+      valueStore = object : ValueStore<K2, V> {
+        override suspend fun read(key: K2): V? {
+          return valueStore.read(transform(key))
+        }
+
+        override suspend fun write(key: K2, value: V) {
+          valueStore.write(transform(key), value)
+        }
+
+        override suspend fun remove(key: K2) {
+          valueStore.remove(transform(key))
+        }
+      },
+      ticker,
+      log,
+    )
+  }
 }
 
 interface ExpirePolicy<K : Any> {
