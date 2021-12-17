@@ -1,8 +1,8 @@
 package ru.dimsuz.yolk
 
-import java.time.Duration
-import java.time.LocalDateTime
-import java.time.ZoneOffset
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Duration
 
 class Cache<K : Any, V>(
   private val expirePolicy: ExpirePolicy<K>,
@@ -32,16 +32,16 @@ class Cache<K : Any, V>(
 
   private fun logHit(timestamps: KeyTimestamps?) {
     log {
-      val updatedAt = timestamps?.updatedAt?.let { LocalDateTime.ofInstant(it, ZoneOffset.UTC) }
-      val now = LocalDateTime.ofInstant(ticker.now, ZoneOffset.UTC)
+      val updatedAt = timestamps?.updatedAt?.toLocalDateTime(TimeZone.UTC)
+      val now = ticker.now.toLocalDateTime(TimeZone.UTC)
       "  key has not expired. (updatedAt: $updatedAt, now: $now)"
     }
   }
 
   private fun logMiss(timestamps: KeyTimestamps?, forceRefresh: Boolean) {
     log {
-      val updatedAt = timestamps?.updatedAt?.let { LocalDateTime.ofInstant(it, ZoneOffset.UTC) }
-      val now = LocalDateTime.ofInstant(ticker.now, ZoneOffset.UTC)
+      val updatedAt = timestamps?.updatedAt?.toLocalDateTime(TimeZone.UTC)
+      val now = ticker.now.toLocalDateTime(TimeZone.UTC)
       buildString {
         if (forceRefresh) {
           append("  refresh forced.")
@@ -69,7 +69,7 @@ interface ExpirePolicy<K : Any> {
     fun <K : Any> afterWrite(duration: Duration, ticker: Ticker = Ticker.system()): ExpirePolicy<K> {
       return object : ExpirePolicy<K> {
         override fun hasExpired(key: K, timestamps: KeyTimestamps?): Boolean {
-          return timestamps?.updatedAt == null || Duration.between(timestamps.updatedAt, ticker.now) > duration
+          return timestamps?.updatedAt == null || ticker.now.minus(timestamps.updatedAt) > duration
         }
       }
     }

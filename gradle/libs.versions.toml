@@ -1,15 +1,23 @@
 [versions]
-koTest = "4.6.3"
-ktlint = "0.43.0"
+koTest = "5.0.2"
+ktlint = "0.43.2"
 coroutines = "1.5.1"
+kotlin = "1.6.10"
+kotlinDateTime = "0.3.1"
 
 [libraries]
-kotest-junit-runner = { module = "io.kotest:kotest-runner-junit5", version.ref = "koTest" }
+kotest-junit-runner = { module = "io.kotest:kotest-runner-junit5-jvm", version.ref = "koTest" }
+kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "koTest" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "koTest" }
 kotest-property = { module = "io.kotest:kotest-property", version.ref = "koTest" }
 ktlint = { module = "com.pinterest:ktlint", version.ref = "ktlint" }
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinDateTime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinDateTime" }
 
 [bundles]
-koTest = [ "kotest-junit-runner", "kotest-assertions-core", "kotest-property" ]
+koTestCommon = [ "kotest-assertions-core", "kotest-property", "kotest-framework-engine" ]
+koTestJvm = [ "kotest-junit-runner" ]
 coroutines = [ "coroutines-core" ]
+
+[plugins]
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin"}
