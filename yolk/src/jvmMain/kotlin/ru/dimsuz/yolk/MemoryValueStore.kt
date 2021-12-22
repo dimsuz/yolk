@@ -2,7 +2,7 @@ package ru.dimsuz.yolk
 
 import java.util.concurrent.ConcurrentHashMap
 
-class MemoryValueStore<K : Any, V> : ValueStore<K, V> {
+public actual class MemoryValueStore<K : Any, V> : ValueStore<K, V> {
   private val store = ConcurrentHashMap<K, V>()
 
   override suspend fun read(key: K): V? {

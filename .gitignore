@@ -6,7 +6,7 @@ bin/
 gen/
 .gradle/
 .externalNativeBuild
-/build
+build/
 /annotations/build
 /sample/build
 /processor/build

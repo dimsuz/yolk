@@ -7,7 +7,8 @@ import ru.dimsuz.yolk.MemoryKeyStore
 import ru.dimsuz.yolk.MemoryValueStore
 import ru.dimsuz.yolk.Ticker
 import ru.dimsuz.yolk.ValueStore
-import java.time.Duration
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 
 fun <K : Any, V> createCache(
   expirePolicy: ExpirePolicy<K>,
@@ -20,7 +21,7 @@ fun <K : Any, V> createCache(
 }
 
 fun createStringIntCache(
-  expireAfterWrite: Duration = Duration.ofMinutes(3),
+  expireAfterWrite: Duration = 3.minutes,
   fetch: suspend (key: String) -> Int = { 42 },
   valueStore: ValueStore<String, Int> = MemoryValueStore(),
   ticker: Ticker = Ticker.fake(),

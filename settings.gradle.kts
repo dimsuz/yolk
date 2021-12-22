@@ -1,6 +1,13 @@
+pluginManagement {
+  repositories {
+    google()
+    gradlePluginPortal()
+    mavenCentral()
+  }
+}
+
 rootProject.name = "yolk"
 
-include("library")
-
+include("yolk")
 
 enableFeaturePreview("VERSION_CATALOGS")

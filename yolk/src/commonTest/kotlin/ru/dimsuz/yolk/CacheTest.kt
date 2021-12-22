@@ -1,59 +1,62 @@
 package ru.dimsuz.yolk
 
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.matchers.atomic.shouldBeTrue
+import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.flow.update
 import ru.dimsuz.yolk.fake.FakeValueStore
 import ru.dimsuz.yolk.fake.createStringIntCache
 import ru.dimsuz.yolk.fake.fake
-import java.time.Duration
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.nanoseconds
 
 class CacheTest : ShouldSpec({
   should("fetch on first load") {
-    val fetched = AtomicBoolean()
+    val fetched = MutableStateFlow(false)
     val sut = createStringIntCache(
-      fetch = { fetched.set(true); 42 }
+      fetch = { fetched.value = true; 42 }
     )
 
     sut.load("a")
 
-    fetched.shouldBeTrue()
+    fetched.first().shouldBeTrue()
   }
 
   should("not fetch on fresh key") {
-    val fetchCount = AtomicInteger()
+    val fetchCount = MutableStateFlow(0)
     val ticker = Ticker.fake()
     val sut = createStringIntCache(
       ticker = ticker,
-      expireAfterWrite = Duration.ofMinutes(3),
-      fetch = { fetchCount.incrementAndGet(); 42 },
+      expireAfterWrite = 3.minutes,
+      fetch = { fetchCount.update { it + 1 }; 42 },
       enableLogging = true
     )
     sut.load("a")
 
-    ticker.advanceBy(Duration.ofMinutes(2))
+    ticker.advanceBy(2.minutes)
     sut.load("a")
 
-    fetchCount.get() shouldBe 1
+    fetchCount.value shouldBe 1
   }
 
   should("fetch on expired key") {
-    val fetchCount = AtomicInteger()
+    val fetchCount = MutableStateFlow(0)
     val ticker = Ticker.fake()
     val sut = createStringIntCache(
       ticker = ticker,
-      expireAfterWrite = Duration.ofMinutes(3),
-      fetch = { fetchCount.incrementAndGet(); 42 },
+      expireAfterWrite = 3.minutes,
+      fetch = { fetchCount.update { it + 1 }; 42 },
       enableLogging = true
     )
     sut.load("a")
 
-    ticker.advanceBy(Duration.ofMinutes(3).plusNanos(10))
+    ticker.advanceBy(3.minutes.plus(10.nanoseconds))
     sut.load("a")
 
-    fetchCount.get() shouldBe 2
+    fetchCount.value shouldBe 2
   }
 
   should("return fetched value on cache miss") {
@@ -69,9 +72,9 @@ class CacheTest : ShouldSpec({
   }
 
   should("return stored value on cache hit") {
-    val fetchCount = AtomicInteger()
+    val fetchCount = MutableStateFlow(0)
     val sut = createStringIntCache(
-      fetch = { if (fetchCount.getAndIncrement() == 0) 42 else 24 },
+      fetch = { if (fetchCount.getAndUpdate { it + 1 } == 0) 42 else 24 },
     )
 
     sut.load("a")
@@ -106,9 +109,9 @@ class CacheTest : ShouldSpec({
   }
 
   should("refresh with fetch even if key is not expired") {
-    val fetchCount = AtomicInteger()
+    val fetchCount = MutableStateFlow(0)
     val sut = createStringIntCache(
-      fetch = { if (fetchCount.getAndIncrement() == 0) 42 else 24 },
+      fetch = { if (fetchCount.getAndUpdate { it + 1 } == 0) 42 else 24 },
     )
     sut.load("a")
     check(!sut.hasExpired("a"))
