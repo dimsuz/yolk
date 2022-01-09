@@ -32,7 +32,6 @@ class CacheTest : ShouldSpec({
       ticker = ticker,
       expireAfterWrite = 3.minutes,
       fetch = { fetchCount.update { it + 1 }; 42 },
-      enableLogging = true
     )
     sut.load("a")
 
@@ -49,7 +48,6 @@ class CacheTest : ShouldSpec({
       ticker = ticker,
       expireAfterWrite = 3.minutes,
       fetch = { fetchCount.update { it + 1 }; 42 },
-      enableLogging = true
     )
     sut.load("a")
 

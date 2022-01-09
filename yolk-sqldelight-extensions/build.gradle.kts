@@ -10,7 +10,7 @@ kotlin {
       compilations.all {
         kotlinOptions {
           jvmTarget = "1.8"
-          moduleName = "yolk-library"
+          moduleName = "yolk-sqldelight-extensions"
         }
       }
     }
@@ -23,14 +23,16 @@ kotlin {
     }
     val commonMain by getting {
       dependencies {
-        api(libs.bundles.coroutines)
-        api(libs.kotlinDateTime)
+        api(project(":yolk"))
+        api(libs.sqlDelightRuntime)
+        implementation(libs.bundles.coroutines)
       }
     }
 
     val commonTest by getting {
       dependencies {
         implementation(libs.bundles.koTestCommon)
+        implementation(libs.turbine)
       }
     }
 

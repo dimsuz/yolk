@@ -26,7 +26,6 @@ fun createStringIntCache(
   valueStore: ValueStore<String, Int> = MemoryValueStore(),
   ticker: Ticker = Ticker.fake(),
   keyStore: KeyStore<String> = MemoryKeyStore(ticker),
-  enableLogging: Boolean = false,
 ): Cache<String, Int> {
   return Cache(
     expirePolicy = ExpirePolicy.afterWrite(expireAfterWrite, ticker),
@@ -34,6 +33,5 @@ fun createStringIntCache(
     valueStore = valueStore,
     keyStore = keyStore,
     ticker = ticker,
-    log = { lazyValue -> if (enableLogging) println(lazyValue()) }
   )
 }

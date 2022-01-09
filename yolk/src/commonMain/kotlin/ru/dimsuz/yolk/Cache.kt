@@ -1,7 +1,8 @@
 package ru.dimsuz.yolk
 
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlin.time.Duration
 
 public class Cache<K : Any, V>(
@@ -10,48 +11,37 @@ public class Cache<K : Any, V>(
   private val keyStore: KeyStore<K>,
   private val valueStore: ValueStore<K, V>,
   private val ticker: Ticker = Ticker.system(),
-  private val log: (() -> String) -> Unit = {}
 ) {
 
   public suspend fun load(key: K, forceRefresh: Boolean = false): V {
-    log { "loading key $key" }
+    _events.emit(CacheEvent.LoadStarted(key))
     val timestamps = keyStore.read(key)
     return if (forceRefresh || expirePolicy.hasExpired(key, timestamps)) {
-      logMiss(timestamps, forceRefresh)
+      _events.emit(CacheEvent.Miss(key, timestamps, forceRefresh))
       val value = fetch(key)
       valueStore.write(key, value)
       keyStore.update(key) { ts ->
         ts?.copy(updatedAt = ticker.now) ?: KeyTimestamps(updatedAt = ticker.now, accessAt = null)
       }
+      _events.emit(CacheEvent.FetchSuccess(key))
       value
     } else {
-      logHit(timestamps)
+      _events.emit(CacheEvent.Hit(key, timestamps))
       valueStore.read(key) ?: error("no value for \"$key\" in value store, while the key is not expired")
     }
   }
 
-  private fun logHit(timestamps: KeyTimestamps?) {
-    log {
-      val updatedAt = timestamps?.updatedAt?.toLocalDateTime(TimeZone.UTC)
-      val now = ticker.now.toLocalDateTime(TimeZone.UTC)
-      "  key has not expired. (updatedAt: $updatedAt, now: $now)"
-    }
-  }
+  private val _events = MutableSharedFlow<CacheEvent<K>>(
+    extraBufferCapacity = 1,
+    onBufferOverflow = BufferOverflow.DROP_OLDEST
+  )
 
-  private fun logMiss(timestamps: KeyTimestamps?, forceRefresh: Boolean) {
-    log {
-      val updatedAt = timestamps?.updatedAt?.toLocalDateTime(TimeZone.UTC)
-      val now = ticker.now.toLocalDateTime(TimeZone.UTC)
-      buildString {
-        if (forceRefresh) {
-          append("  refresh forced.")
-        } else {
-          append("  key has expired.")
-        }
-        append(" Fetching. (updatedAt: $updatedAt, now: $now)")
-      }
-    }
-  }
+  /**
+   * Emits cache events. If backpressure occurs, older unprocessed items will be dropped.
+   *
+   * You can use built-in logger helper to log these events, see [collectToLog] extension function.
+   */
+  public val events: Flow<CacheEvent<K>> = _events
 
   public suspend fun hasExpired(key: K): Boolean {
     return expirePolicy.hasExpired(key, keyStore.read(key))
