@@ -14,7 +14,7 @@ implementation("ru.dimsuz:yolk:1.1.0")
 ```
 MIT License
 
-Copyright (c) 2022 KODE LLC
+Copyright (c) 2022 Dmitry Suzdalev
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
