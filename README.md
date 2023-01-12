@@ -6,7 +6,10 @@ Simple key-based asynchronous loading cache
 Library is published on Maven Central repository.
 
 ```
+// main library
 implementation("ru.dimsuz:yolk:1.1.0")
+// extensions to use with SqlDelight library
+implementation("ru.dimsuz:yolk-sqldelight-extensions:1.1.0")
 ```
 
 # License
