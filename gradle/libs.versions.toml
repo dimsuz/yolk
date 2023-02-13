@@ -1,12 +1,12 @@
 [versions]
-koTest = "5.0.2"
+koTest = "5.5.5"
 ktlint = "0.43.2"
-coroutines = "1.5.1"
-kotlin = "1.6.10"
-kotlinDateTime = "0.3.1"
+coroutines = "1.6.4"
+kotlin = "1.7.21"
+kotlinDateTime = "0.3.3"
 spotless = "6.0.5"
 dokka = "1.5.31"
-sqlDelight = "1.5.3"
+sqlDelight = "1.5.5"
 turbine = "0.7.0"
 
 [libraries]

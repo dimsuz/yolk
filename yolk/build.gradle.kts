@@ -1,6 +1,6 @@
 plugins {
   id(libs.plugins.kotlinMultiplatform.get().pluginId)
-  id(libs.plugins.dokka.get().pluginId)
+  id(libs.plugins.dokka.get().pluginId) apply false
   `maven-publish`
 }
 
